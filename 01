@@ -1,0 +1,48 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Carousel</title>
+<style>
+  /* 화면 전체를 iframe 높이에 맞게 */
+  html,body{margin:0;padding:0;height:100%}
+  .viewport{
+    height:100%;
+    overflow-x:auto;
+    overflow-y:hidden;
+    display:flex;
+    scroll-snap-type:x mandatory;   /* 스냅 */
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior:smooth;
+  }
+  .slide{
+    flex: 0 0 100%;
+    height:100%;
+    position:relative;
+    scroll-snap-align:start;
+  }
+  .slide img{
+    width:100%;
+    height:100%;
+    object-fit:cover; /* 이미지 꽉 차게 */
+    display:block;
+  }
+  /* 점 네비(선택) */
+  .dots{
+    position:fixed; left:50%; bottom:12px; transform:translateX(-50%);
+    display:flex; gap:8px; font:14px/1 sans-serif;
+    background:rgba(0,0,0,.35); padding:6px 10px; border-radius:999px;
+  }
+  .dots a{color:#fff; text-decoration:none; opacity:.7}
+  .dots a:hover{opacity:1}
+</style>
+
+<div class="viewport" id="viewport">
+  <section class="slide" id="s1"><img src="https://i.imgur.com/dmeQLn6.jpeg" alt=""></section>
+  <section class="slide" id="s2"><img src="https://i.imgur.com/9eO3lDR.jpeg" alt=""></section>
+  <section class="slide" id="s3"><img src="https://i.imgur.com/OLYUeQn.jpeg" alt=""></section>
+</div>
+
+<nav class="dots">
+  <a href="#s1">●</a>
+  <a href="#s2">●</a>
+  <a href="#s3">●</a>
+</nav>
