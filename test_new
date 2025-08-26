@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>이미지 캐러셀 with 공통 텍스트</title>
+
+  <!-- 폰트: Noto Sans KR -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* 기본 설정 */
+    html, body { height:100%; margin:0; }
+    body {
+      font-family: "Noto Sans KR", sans-serif;
+      font-size:16px; color:#111; background:#f6f6f6;
+      display:flex; justify-content:center; align-items:center;
+    }
+
+    /* 전체 박스 */
+    .box {
+      width:100%;
+      max-width:600px;
+      background:#fff;
+      border:1px solid #e8e8e8;
+      border-radius:16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.04);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* 캐러셀 */
+    .carousel {
+      position:relative;
+      height:360px; /* 필요에 맞게 높이 조정 */
+      background:#fafafa;
+    }
+
+    .viewport {
+      height:100%;
+      display:flex;
+      scroll-snap-type:x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior:smooth;
+      overflow-x: scroll;
+      overflow-y: hidden;
+      touch-action: pan-x;
+    }
+    .viewport { scrollbar-width:none; -ms-overflow-style:none; }
+    .viewport::-webkit-scrollbar { display:none; }
+
+    .slide {
+      flex:0 0 100%;
+      height:100%;
+      display:flex; align-items:center; justify-content:center;
+      scroll-snap-align:start;
+    }
+    .slide img {
+      max-width:100%;
+      max-height:100%;
+      object-fit:contain;
+      display:block;
+    }
+
+    /* 점 네비 */
+    .dots {
+      position:absolute; left:50%; bottom:12px; transform:translateX(-50%);
+      display:flex; gap:8px; font:14px/1 sans-serif;
+      background:rgba(0,0,0,.35); padding:6px 10px; border-radius:999px;
+    }
+    .dots a{color:#fff; text-decoration:none; opacity:.8}
+    .dots a:hover{opacity:1}
+
+    /* 공통 텍스트 */
+    .common-text {
+      padding:16px 20px;
+      line-height:1.6;
+      text-align:center;
+      border-top:1px solid #eee;
+      background:#fff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+
+    <div class="carousel">
+      <div class="viewport">
+        <section class="slide" id="s1"><img src="https://i.imgur.com/dmeQLn6.jpeg" alt="이미지1"></section>
+        <section class="slide" id="s2"><img src="https://i.imgur.com/9eO3lDR.jpeg" alt="이미지2"></section>
+        <section class="slide" id="s3"><img src="https://i.imgur.com/OLYUeQn.jpeg" alt="이미지3"></section>
+      </div>
+
+      <nav class="dots">
+        <a href="#s1">●</a>
+        <a href="#s2">●</a>
+        <a href="#s3">●</a>
+      </nav>
+    </div>
+
+    <!-- 하나의 공통 텍스트 -->
+    <div class="common-text">
+      나를 위한 치유와 힐링 여행
+    </div>
+
+  </div>
+
+</body>
+</html>
