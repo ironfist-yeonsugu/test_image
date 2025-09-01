@@ -1,111 +1,456 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>이미지 캐러셀 with 공통 텍스트</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>웹툰 이미지 슬라이더</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  <!-- 폰트: Noto Sans KR -->
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600&display=swap" rel="stylesheet">
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-  <style>
-    /* 기본 설정 */
-    html, body { height:100%; margin:0; }
-    body {
-      font-family: "Noto Sans KR", sans-serif;
-      font-size:16px; color:#111; background:#f6f6f6;
-      display:flex; justify-content:center; align-items:center;
-    }
+        .slider-container {
+            max-width: 400px;
+            width: 100%;
+            aspect-ratio: 1;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
 
-    /* 전체 박스 */
-    .box {
-      width:100%;
-      max-width:600px;
-      background:#fff;
-      border:1px solid #e8e8e8;
-      border-radius:16px;
-      box-shadow: 0 2px 10px rgba(0,0,0,.04);
-      overflow:hidden;
-      display:flex;
-      flex-direction:column;
-    }
+        .slider-wrapper {
+            position: relative;
+            overflow: hidden;
+            flex: 1;
+        }
 
-    /* 캐러셀 */
-    .carousel {
-      position:relative;
-      height:360px; /* 필요에 맞게 높이 조정 */
-      background:#fafafa;
-    }
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
 
-    .viewport {
-      height:100%;
-      display:flex;
-      scroll-snap-type:x mandatory;
-      -webkit-overflow-scrolling: touch;
-      scroll-behavior:smooth;
-      overflow-x: scroll;
-      overflow-y: hidden;
-      touch-action: pan-x;
-    }
-    .viewport { scrollbar-width:none; -ms-overflow-style:none; }
-    .viewport::-webkit-scrollbar { display:none; }
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
 
-    .slide {
-      flex:0 0 100%;
-      height:100%;
-      display:flex; align-items:center; justify-content:center;
-      scroll-snap-align:start;
-    }
-    .slide img {
-      max-width:100%;
-      max-height:100%;
-      object-fit:contain;
-      display:block;
-    }
+        .slide.prev {
+            transform: translateX(-100%);
+        }
 
-    /* 점 네비 */
-    .dots {
-      position:absolute; left:50%; bottom:12px; transform:translateX(-50%);
-      display:flex; gap:8px; font:14px/1 sans-serif;
-      background:rgba(0,0,0,.35); padding:6px 10px; border-radius:999px;
-    }
-    .dots a{color:#fff; text-decoration:none; opacity:.8}
-    .dots a:hover{opacity:1}
+        .slide img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
 
-    /* 공통 텍스트 */
-    .common-text {
-      padding:16px 20px;
-      line-height:1.6;
-      text-align:center;
-      border-top:1px solid #eee;
-      background:#fff;
-    }
-  </style>
+        .navigation {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.9);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+
+        .navigation:hover {
+            background: rgba(255,255,255,1);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .nav-prev {
+            left: 15px;
+        }
+
+        .nav-next {
+            right: 15px;
+        }
+
+        .navigation::before {
+            content: '';
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+
+        .nav-prev::before {
+            border-width: 6px 10px 6px 0;
+            border-color: transparent #333 transparent transparent;
+            margin-left: -2px;
+        }
+
+        .nav-next::before {
+            border-width: 6px 0 6px 10px;
+            border-color: transparent transparent transparent #333;
+            margin-right: -2px;
+        }
+
+        .indicators {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            gap: 8px;
+            background: rgba(247, 248, 250, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .indicator.active {
+            background: #667eea;
+            transform: scale(1.2);
+        }
+
+        .counter {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            z-index: 10;
+        }
+
+        /* 터치 및 드래그 지원 */
+        .slider-wrapper {
+            touch-action: pan-y;
+            user-select: none;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 480px) {
+            .slider-container {
+                max-width: 90vw;
+                margin: 0 auto;
+                border-radius: 15px;
+            }
+        }
+
+        /* 로딩 애니메이션 */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        .loading::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid #667eea;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
+    <div class="slider-container">
+        <div class="counter">
+            <span id="current">1</span> / <span id="total">9</span>
+        </div>
+        
+        <div class="slider-wrapper" id="sliderWrapper">
+            <!-- 이미지들을 Base64로 인코딩하여 직접 삽입 -->
+            <div class="slide active">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==" alt="웹툰 이미지 1" id="img1">
+            </div>
+            <div class="slide">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==" alt="웹툰 이미지 2" id="img2">
+            </div>
+            <div class="slide">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==" alt="웹툰 이미지 3" id="img3">
+            </div>
+            <div class="slide">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==" alt="웹툰 이미지 4" id="img4">
+            </div>
+            <div class="slide">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==" alt="웹툰 이미지 5" id="img5">
+            </div>
+            <div class="slide">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==" alt="웹툰 이미지 6" id="img6">
+            </div>
+            <div class="slide">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==" alt="웹툰 이미지 7" id="img7">
+            </div>
+            <div class="slide">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==" alt="웹툰 이미지 8" id="img8">
+            </div>
+            <div class="slide">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==" alt="웹툰 이미지 9" id="img9">
+            </div>
+        </div>
 
-  <div class="box">
+        <button class="navigation nav-prev" id="prevBtn"></button>
+        <button class="navigation nav-next" id="nextBtn"></button>
 
-    <div class="carousel">
-      <div class="viewport">
-        <section class="slide" id="s1"><img src="https://i.imgur.com/dmeQLn6.jpeg" alt="이미지1"></section>
-        <section class="slide" id="s2"><img src="https://i.imgur.com/9eO3lDR.jpeg" alt="이미지2"></section>
-        <section class="slide" id="s3"><img src="https://i.imgur.com/OLYUeQn.jpeg" alt="이미지3"></section>
-      </div>
-
-      <nav class="dots">
-        <a href="#s1">●</a>
-        <a href="#s2">●</a>
-        <a href="#s3">●</a>
-      </nav>
+        <div class="indicators">
+            <div class="indicator active" data-slide="0"></div>
+            <div class="indicator" data-slide="1"></div>
+            <div class="indicator" data-slide="2"></div>
+            <div class="indicator" data-slide="3"></div>
+            <div class="indicator" data-slide="4"></div>
+            <div class="indicator" data-slide="5"></div>
+            <div class="indicator" data-slide="6"></div>
+            <div class="indicator" data-slide="7"></div>
+            <div class="indicator" data-slide="8"></div>
+        </div>
     </div>
 
-    <!-- 하나의 공통 텍스트 -->
-    <div class="common-text">
-      나를 위한 치유와 힐링 여행
-    </div>
+    <script>
+        class WebtoonSlider {
+            constructor() {
+                this.currentSlide = 0;
+                this.totalSlides = 9;
+                this.slides = document.querySelectorAll('.slide');
+                this.indicators = document.querySelectorAll('.indicator');
+                this.prevBtn = document.getElementById('prevBtn');
+                this.nextBtn = document.getElementById('nextBtn');
+                this.currentCounter = document.getElementById('current');
+                this.sliderWrapper = document.getElementById('sliderWrapper');
+                
+                // 터치 관련 변수
+                this.startX = 0;
+                this.startY = 0;
+                this.isDragging = false;
+                this.threshold = 50; // 스와이프 감지 임계값
+                
+                this.init();
+                this.setupEventListeners();
+                this.showPlaceholderImages();
+            }
 
-  </div>
+            init() {
+                this.updateSlide();
+            }
 
+            setupEventListeners() {
+                // 버튼 클릭
+                this.prevBtn.addEventListener('click', () => this.prevSlide());
+                this.nextBtn.addEventListener('click', () => this.nextSlide());
+
+                // 인디케이터 클릭
+                this.indicators.forEach((indicator, index) => {
+                    indicator.addEventListener('click', () => this.goToSlide(index));
+                });
+
+                // 키보드 네비게이션
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowLeft') this.prevSlide();
+                    if (e.key === 'ArrowRight') this.nextSlide();
+                });
+
+                // 터치 이벤트
+                this.sliderWrapper.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: true });
+                this.sliderWrapper.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
+                this.sliderWrapper.addEventListener('touchend', () => this.handleTouchEnd(), { passive: true });
+
+                // 마우스 드래그 이벤트
+                this.sliderWrapper.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+                this.sliderWrapper.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                this.sliderWrapper.addEventListener('mouseup', () => this.handleMouseUp());
+                this.sliderWrapper.addEventListener('mouseleave', () => this.handleMouseUp());
+
+                // 자동 슬라이드 (옵션)
+                this.setupAutoSlide();
+            }
+
+            showPlaceholderImages() {
+                // 실제 웹툰 이미지들
+                const webtoonImages = [
+                    'https://i.imgur.com/Jo5kQWH.jpeg',
+                    'https://i.imgur.com/efbaOaV.jpeg',
+                    'https://i.imgur.com/LplqxOw.jpeg',
+                    'https://i.imgur.com/ny2prYo.jpeg',
+                    'https://i.imgur.com/Fk4opCo.jpeg',
+                    'https://i.imgur.com/GQj7bIk.jpeg',
+                    'https://i.imgur.com/8QoNSfl.jpeg',
+                    'https://i.imgur.com/S6Q74Nj.jpeg',
+                    'https://i.imgur.com/qkY3l9T.jpeg'
+                ];
+
+                webtoonImages.forEach((src, index) => {
+                    const img = document.getElementById(`img${index + 1}`);
+                    if (img) {
+                        img.src = src;
+                        img.style.display = 'block';
+                        // 이미지 로딩 에러 처리
+                        img.onerror = () => {
+                            console.log(`이미지 로딩 실패: ${src}`);
+                            img.style.backgroundColor = '#f0f0f0';
+                            img.alt = `웹툰 이미지 ${index + 1} (로딩 실패)`;
+                        };
+                    }
+                });
+            }
+
+            handleTouchStart(e) {
+                this.startX = e.touches[0].clientX;
+                this.startY = e.touches[0].clientY;
+                this.isDragging = true;
+            }
+
+            handleTouchMove(e) {
+                if (!this.isDragging) return;
+                
+                const currentX = e.touches[0].clientX;
+                const currentY = e.touches[0].clientY;
+                const diffX = this.startX - currentX;
+                const diffY = this.startY - currentY;
+                
+                // 수직 스크롤보다 수평 스와이프가 더 클 때만 처리
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    e.preventDefault();
+                }
+            }
+
+            handleTouchEnd() {
+                if (!this.isDragging) return;
+                
+                const currentX = event.changedTouches[0].clientX;
+                const diffX = this.startX - currentX;
+                
+                if (Math.abs(diffX) > this.threshold) {
+                    if (diffX > 0) {
+                        this.nextSlide();
+                    } else {
+                        this.prevSlide();
+                    }
+                }
+                
+                this.isDragging = false;
+            }
+
+            handleMouseDown(e) {
+                this.startX = e.clientX;
+                this.isDragging = true;
+                this.sliderWrapper.style.cursor = 'grabbing';
+            }
+
+            handleMouseMove(e) {
+                if (!this.isDragging) return;
+                e.preventDefault();
+            }
+
+            handleMouseUp() {
+                if (!this.isDragging) return;
+                
+                const currentX = event.clientX;
+                const diffX = this.startX - currentX;
+                
+                if (Math.abs(diffX) > this.threshold) {
+                    if (diffX > 0) {
+                        this.nextSlide();
+                    } else {
+                        this.prevSlide();
+                    }
+                }
+                
+                this.isDragging = false;
+                this.sliderWrapper.style.cursor = 'grab';
+            }
+
+            setupAutoSlide() {
+                // 자동 슬라이드 기능 (선택사항)
+                // setInterval(() => {
+                //     this.nextSlide();
+                // }, 5000);
+            }
+
+            updateSlide() {
+                // 슬라이드 업데이트
+                this.slides.forEach((slide, index) => {
+                    slide.classList.remove('active', 'prev');
+                    if (index === this.currentSlide) {
+                        slide.classList.add('active');
+                    } else if (index < this.currentSlide) {
+                        slide.classList.add('prev');
+                    }
+                });
+
+                // 인디케이터 업데이트
+                this.indicators.forEach((indicator, index) => {
+                    indicator.classList.toggle('active', index === this.currentSlide);
+                });
+
+                // 카운터 업데이트
+                this.currentCounter.textContent = this.currentSlide + 1;
+            }
+
+            nextSlide() {
+                this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
+                this.updateSlide();
+            }
+
+            prevSlide() {
+                this.currentSlide = (this.currentSlide - 1 + this.totalSlides) % this.totalSlides;
+                this.updateSlide();
+            }
+
+            goToSlide(index) {
+                this.currentSlide = index;
+                this.updateSlide();
+            }
+        }
+
+        // 슬라이더 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            new WebtoonSlider();
+        });
+    </script>
 </body>
 </html>
