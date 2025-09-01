@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: white;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -93,6 +93,12 @@
         .navigation:hover {
             background: rgba(255,255,255,1);
             transform: translateY(-50%) scale(1.1);
+        }
+
+        .navigation.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            pointer-events: none;
         }
 
         .nav-prev {
@@ -429,16 +435,39 @@
 
                 // 카운터 업데이트
                 this.currentCounter.textContent = this.currentSlide + 1;
+
+                // 네비게이션 버튼 상태 업데이트
+                this.updateNavigationState();
+            }
+
+            updateNavigationState() {
+                // 첫 번째 페이지에서는 이전 버튼 비활성화
+                if (this.currentSlide === 0) {
+                    this.prevBtn.classList.add('disabled');
+                } else {
+                    this.prevBtn.classList.remove('disabled');
+                }
+
+                // 마지막 페이지에서는 다음 버튼 비활성화
+                if (this.currentSlide === this.totalSlides - 1) {
+                    this.nextBtn.classList.add('disabled');
+                } else {
+                    this.nextBtn.classList.remove('disabled');
+                }
             }
 
             nextSlide() {
-                this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
-                this.updateSlide();
+                if (this.currentSlide < this.totalSlides - 1) {
+                    this.currentSlide++;
+                    this.updateSlide();
+                }
             }
 
             prevSlide() {
-                this.currentSlide = (this.currentSlide - 1 + this.totalSlides) % this.totalSlides;
-                this.updateSlide();
+                if (this.currentSlide > 0) {
+                    this.currentSlide--;
+                    this.updateSlide();
+                }
             }
 
             goToSlide(index) {
